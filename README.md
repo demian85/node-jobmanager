@@ -1,3 +1,5 @@
+A really simple tool that helps you manage multiple asynchronous tasks.
+
 Install
 -------
 ```js
