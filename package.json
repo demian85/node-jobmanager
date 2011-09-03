@@ -1,14 +1,14 @@
 {
-  "name": "node-jobmanager",
+  "name": "jobmanager",
   "description": "Simple async job manager. Allows you to execute serial or parallel jobs.",
-  "version": "0.1",
+  "version": "0.0.1",
   "author": "Demián Andrés Rodriguez <demian85@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "http://github.com/indexzero/neuron.git" 
+    "url": "git://github.com/demian85/node-jobmanager.git" 
   },
   "keywords": ["job manager", "queue", "async", "parallel"],
   "dependencies": {},
-  "main": "./lib/jobmanager",
+  "main": "./jobmanager",
   "engines": { "node": ">= 0.4.0" }
 }

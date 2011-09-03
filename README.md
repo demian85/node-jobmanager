@@ -7,7 +7,7 @@ npm install jobmanager
 Examples
 ----
 <pre>
-var JobManager = require('JobManager').JobManager,
+var JobManager = require('jobmanager').JobManager,
 util = require('util');
 
 /**
