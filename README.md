@@ -61,4 +61,22 @@ new JobManager({
 		util.log('process finished')
 	}
 }).init();
+
+/**
+* Add jobs later...
+*/
+var mgr = new JobManager({
+	exec : function(item, job) {
+		util.log('Executing ' + item);
+		setTimeout(function() {
+			if (item%2 == 0) job.retry();
+			else job.next();
+		}, 100);
+	},
+	end : function() {
+		util.log('process finished')
+	}
+});
+for (var i = 1; i <= 6; i++) mgr.add(i);
+mgr.init();
 ```
