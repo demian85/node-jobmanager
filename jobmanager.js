@@ -1,24 +1,24 @@
 var util = require('util'), EventEmitter = require('events').EventEmitter;
 
 /**
- * Async job manager. Lets you specify how many items to process in parallel.
- * Method init() should be called only once.
- * You can add items later with the add() method
  * @param options Object with the following properties:
  *		- (Array)input: contains items to process
  *		- (Number)retries: maximum number of retries before calling next()
  *		- (Number)max: max number of jobs to run in parallel. Default = 0 (no limit)
  *		- (Function)exec: Function to be called for each job. The first argument will be the item extracted from the queue. The 2nd is an object representing the current job and has the following methods: retry(), next(). 'this' refers to the job manager instance.
  *		- (Function)end: Function to be called after all jobs have been processed. Also emited as 'end' event.
+ *		- (Function)fail: Function to be called when a job failed all the retry attempts or when fail() method is called explicitly.
  */
 function JobManager(options) {
 	EventEmitter.call(this);
+	
 	this._input = options.input || [];
 	this._max = options.max || 0;
 	this._exec = options.exec || function() {};
 	this._count = 0;
 	this._retries = options.retries || 2;
-	if (typeof options.end == 'function') this.on('end', options.end);	
+	if (typeof options.end == 'function') this.on('end', options.end);
+	if (typeof options.fail == 'function') this.on('fail', options.fail);
 };
 
 util.inherits(JobManager, EventEmitter);
@@ -29,6 +29,10 @@ JobManager.prototype._run = function() {
 		self._count--;
 		self._run();
 	};
+	var fail = function() {
+		self.emit('fail', item);
+		next();		
+	};
 	var item = self._input.shift();
 	if (!item && self._count == 0) self.emit('end');
 	else if (item) {		
@@ -36,13 +40,14 @@ JobManager.prototype._run = function() {
 		job = {
 			next : next,
 			retry : function(timeout) {				
-				if (retries == self._retries) next();
+				if (retries == self._retries) fail();
 				else {
 					retries++;
 					if (timeout) setTimeout(function() { self._exec.call(self, item, job); }, timeout);
 					else self._exec.call(self, item, job);
 				}
-			}
+			},
+			fail : fail
 		};
 		self._count++;
 		self._exec.call(self, item, job);
