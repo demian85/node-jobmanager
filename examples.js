@@ -11,6 +11,7 @@ new JobManager({
 		util.log('Executing ' + item);
 		setTimeout(function() {
 			if (item%2 == 0) job.retry(3000);
+			else if (item == 5) job.fail();
 			else job.next();
 		}, 100);
 	},
