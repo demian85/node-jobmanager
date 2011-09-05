@@ -7,7 +7,7 @@ var util = require('util'), EventEmitter = require('events').EventEmitter;
  *		- (Number)max: max number of jobs to run in parallel. Default = 0 (no limit)
  *		- (Function)exec: Function to be called for each job. The first argument will be the item extracted from the queue. The 2nd is an object representing the current job and has the following methods: retry(), next(). 'this' refers to the job manager instance.
  *		- (Function)end: Function to be called after all jobs have been processed. Also emited as 'end' event.
- *		- (Function)fail: Function to be called when a job failed all the retry attempts or when fail() method is called explicitly.
+ *		- (Function)fail: Function to be called when a job failed all the retry attempts or when fail() method is called explicitly. Receives the failed item as the first argument and an optional 2nd argument.
  */
 function JobManager(options) {
 	EventEmitter.call(this);
@@ -29,14 +29,14 @@ JobManager.prototype._run = function() {
 		self._count--;
 		self._run();
 	};
-	var fail = function() {
-		self.emit('fail', item);
-		next();		
-	};
 	var item = self._input.shift();
 	if (!item && self._count == 0) self.emit('end');
 	else if (item) {		
 		var retries = 0,
+		fail = function(err) {
+			self.emit('fail', item, err);
+			next();		
+		},
 		job = {
 			next : next,
 			retry : function(timeout) {				

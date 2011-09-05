@@ -11,15 +11,16 @@ new JobManager({
 		util.log('Executing ' + item);
 		setTimeout(function() {
 			if (item%2 == 0) job.retry(3000);
-			else if (item == 5) job.fail();
+			else if (item == 5) job.fail(new Error('5 is not valid!'));
 			else job.next();
 		}, 100);
 	},
 	end : function() {
 		util.log('process finished')
 	},
-	fail : function(item) {
+	fail : function(item, err) {
 		console.error(item + ' failed!');
+		console.log(err)
 	}
 }).init();
 
@@ -40,3 +41,20 @@ new JobManager({
 		util.log('process finished')
 	}
 }).init();
+
+/**
+ * Add jobs later...
+ */
+var mgr = new JobManager({
+	exec : function(item, job) {
+		util.log('Executing ' + item);
+		setTimeout(function() {
+			if (item%2 == 0) job.retry();
+			else job.next();
+		}, 100);
+	}
+});
+mgr.add(1);
+mgr.add(3);
+mgr.add(4);
+mgr.init();
