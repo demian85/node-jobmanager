@@ -5,9 +5,9 @@ var util = require('util'), EventEmitter = require('events').EventEmitter;
  *		- (Array)input: contains items to process
  *		- (Number)retries: maximum number of retries before calling next()
  *		- (Number)max: max number of jobs to run in parallel. Default = 0 (no limit)
- *		- (Function)exec: Function to be called for each job. The first argument will be the item extracted from the queue. The 2nd is an object representing the current job and has the following methods: retry(), next(). 'this' refers to the job manager instance.
+ *		- (Function)exec: Function to be called for each job. The first argument will be the item extracted from the queue. The 2nd is an object representing the current job and has the following methods: retry(), end(), fail(). 'this' refers to the job manager instance.
  *		- (Function)end: Function to be called after all jobs have been processed. Also emited as 'end' event.
- *		- (Function)fail: Function to be called when a job failed all the retry attempts or when fail() method is called explicitly. Receives the failed item as the first argument and an optional 2nd argument.
+ *		- (Function)fail: Function to be called when a job failed all the retry attempts or when fail() method is called explicitly. Receives the failed item as the first argument and optional arguments.
  */
 function JobManager(options) {
 	EventEmitter.call(this);
@@ -24,21 +24,23 @@ function JobManager(options) {
 util.inherits(JobManager, EventEmitter);
 
 JobManager.prototype._run = function() {
-	var self = this;
-	var next = function() {
+	var self = this,
+	next = function() {
 		self._count--;
 		self._run();
-	};
-	var item = self._input.shift();
+	},
+	item = self._input.shift();
 	if (!item && self._count == 0) self.emit('end');
-	else if (item) {		
+	else if (item) {
 		var retries = 0,
-		fail = function(err) {
-			self.emit('fail', item, err);
+		fail = function() {
+			self.emit.apply(self, ['fail', item].concat(Array.prototype.slice.call(arguments)));
 			next();		
 		},
 		job = {
-			next : next,
+			end : next,
+			next : next, // @deprecated
+			fail : fail,
 			retry : function(timeout) {				
 				if (retries == self._retries) fail();
 				else {
@@ -46,8 +48,7 @@ JobManager.prototype._run = function() {
 					if (timeout) setTimeout(function() { self._exec.call(self, item, job); }, timeout);
 					else self._exec.call(self, item, job);
 				}
-			},
-			fail : fail
+			}	
 		};
 		self._count++;
 		self._exec.call(self, item, job);

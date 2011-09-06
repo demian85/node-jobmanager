@@ -2,17 +2,17 @@ var JobManager = require('./jobmanager').JobManager,
 util = require('util');
 
 /**
- * Execute tasks in parallel. Retry 5 times and wait 3 seconds in between
+ * Execute tasks in parallel. Retry 3 times and wait 3 seconds in between
  */
 new JobManager({
 	input : [1,2,3,4,5,6],
-	retries : 5,
+	retries : 3,
 	exec : function(item, job) {
 		util.log('Executing ' + item);
 		setTimeout(function() {
 			if (item%2 == 0) job.retry(3000);
 			else if (item == 5) job.fail(new Error('5 is not valid!'));
-			else job.next();
+			else job.end();
 		}, 100);
 	},
 	end : function() {
@@ -20,7 +20,7 @@ new JobManager({
 	},
 	fail : function(item, err) {
 		console.error(item + ' failed!');
-		console.log(err)
+		if (err) console.error(err);
 	}
 }).init();
 
@@ -34,7 +34,7 @@ new JobManager({
 		util.log('Executing ' + item);
 		setTimeout(function() {
 			if (item%2 == 0) job.retry();
-			else job.next();
+			else job.end();
 		}, 100);
 	},
 	end : function() {
@@ -50,7 +50,7 @@ var mgr = new JobManager({
 		util.log('Executing ' + item);
 		setTimeout(function() {
 			if (item%2 == 0) job.retry();
-			else job.next();
+			else job.end();
 		}, 100);
 	}
 });
