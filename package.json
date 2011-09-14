@@ -1,7 +1,7 @@
 {
   "name": "jobmanager",
   "description": "Simple async job manager. Allows you to execute serial or parallel jobs.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": "Demián Andrés Rodriguez <demian85@gmail.com>",
   "repository": {
     "type": "git",
