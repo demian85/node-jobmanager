@@ -19,7 +19,7 @@ function JobManager(options) {
 	this._retries = options.retries || 2;
 	if (typeof options.end == 'function') this.on('end', options.end);
 	if (typeof options.fail == 'function') this.on('fail', options.fail);
-};
+}
 
 util.inherits(JobManager, EventEmitter);
 
@@ -56,6 +56,9 @@ JobManager.prototype._run = function() {
 };
 JobManager.prototype.add = function(item) {
 	this._input.push(item);
+};
+JobManager.prototype.cancel = function() {
+	this._input = [];
 };
 JobManager.prototype.getCount = function() {
 	return this._count;
