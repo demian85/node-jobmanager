@@ -8,7 +8,7 @@ var util = require('util'), EventEmitter = require('events').EventEmitter;
  *		- (Function)exec: Function to be called for each job. The first argument will be the item extracted from the queue. The 2nd is an object representing the current job and has the following methods: retry(), end(), fail(). 'this' refers to the job manager instance.
  *		- (Function)end: Function to be called after all jobs have been processed. Also emited as 'end' event.
  *		- (Function)fail: Function to be called when a job failed all the retry attempts or when fail() method is called explicitly. Receives the failed item as the first argument and optional arguments.
- */
+ */ 
 function JobManager(options) {
 	EventEmitter.call(this);
 	
