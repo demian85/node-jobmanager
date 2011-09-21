@@ -25,40 +25,46 @@ util.inherits(JobManager, EventEmitter);
 
 JobManager.prototype._run = function() {
 	var self = this,
-	next = function() {
-		self._count--;
-		self._run();
-	},
-	item = self._input.shift();
+		next = self._next.bind(self),
+		item = self._input.shift();
 	if (!item && self._count == 0) self.emit('end');
 	else if (item) {
 		var retries = 0,
-		fail = function() {
-			self.emit.apply(self, ['fail', item].concat(Array.prototype.slice.call(arguments)));
-			next();		
-		},
-		job = {
-			end : next,
-			next : next, // @deprecated
-			fail : fail,
-			retry : function(timeout) {				
-				if (retries == self._retries) fail();
-				else {
-					retries++;
-					if (timeout) setTimeout(function() { self._exec.call(self, item, job); }, timeout);
-					else self._exec.call(self, item, job);
-				}
-			}	
-		};
+			fail = function() {
+				self.emit.apply(self, ['fail', item].concat(Array.prototype.slice.call(arguments)));
+				next();		
+			},
+			job = {
+				retries : retries,
+				end : next,
+				next : next, // @deprecated
+				fail : fail,
+				retry : function(timeout) {				
+					if (retries == self._retries) fail();
+					else {
+						retries++;
+						if (timeout) setTimeout(function() { self._exec.call(self, item, job); }, timeout);
+						else self._exec.call(self, item, job);
+					}
+				}	
+			};
 		self._count++;
 		self._exec.call(self, item, job);
 	}
 };
+JobManager.prototype._next = function() {
+	this._count--;
+	this._run();
+};
 JobManager.prototype.add = function(item) {
 	this._input.push(item);
 };
+/**
+ * Cancel all pending jobs and end the current one
+ */
 JobManager.prototype.cancel = function() {
 	this._input = [];
+	this._next();
 };
 JobManager.prototype.getCount = function() {
 	return this._count;
